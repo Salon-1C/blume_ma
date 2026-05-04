@@ -167,6 +167,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         )
                       : const Text('Iniciar sesión'),
                 ),
+                const SizedBox(height: 12),
+                Row(children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('o',
+                        style: TextStyle(color: AppColors.textSecondary)),
+                  ),
+                  const Expanded(child: Divider()),
+                ]),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _loading
+                      ? null
+                      : () async {
+                          await ref
+                              .read(authNotifierProvider.notifier)
+                              .loginAsDemo();
+                          if (context.mounted) context.go('/explorar');
+                        },
+                  icon: const Icon(Icons.play_circle_outline),
+                  label: const Text('Ver demo (sin backend)'),
+                ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

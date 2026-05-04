@@ -2,7 +2,7 @@ class ApiConstants {
   // Android emulator: 10.0.2.2 → host machine localhost
   // iOS simulator:    localhost
   // Physical device:  LAN IP of the machine running the backend
-  static const String baseUrl = 'http://10.0.2.2';
+  static const String baseUrl = 'http://192.168.1.4';
 
   // MediaMTX HLS (expose port 8888 in docker-compose for live stream playback)
   static const String hlsBaseUrl = 'http://10.0.2.2:8888';

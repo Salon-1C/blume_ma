@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/demo/demo_data.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository.dart';
-import '../../../../core/network/dio_client.dart';
 
 final authNotifierProvider =
     AsyncNotifierProvider<AuthNotifier, UserModel?>(AuthNotifier.new);
@@ -9,6 +10,8 @@ final authNotifierProvider =
 class AuthNotifier extends AsyncNotifier<UserModel?> {
   @override
   Future<UserModel?> build() async {
+    // Skip real API call if demo mode is already active
+    if (ref.read(demoModeProvider)) return DemoData.user;
     try {
       return await ref.read(authRepositoryProvider).getMe();
     } catch (_) {
@@ -30,14 +33,21 @@ class AuthNotifier extends AsyncNotifier<UserModel?> {
     });
   }
 
+  Future<void> loginAsDemo() async {
+    ref.read(demoModeProvider.notifier).state = true;
+    state = AsyncData(DemoData.user);
+  }
+
   Future<void> logout() async {
-    await ref.read(authRepositoryProvider).logout();
+    ref.read(demoModeProvider.notifier).state = false;
+    if (!ref.read(demoModeProvider)) {
+      await ref.read(authRepositoryProvider).logout();
+    }
     state = const AsyncData(null);
   }
 
   Future<void> completeOnboarding(String username, String role) async {
     await ref.read(authRepositoryProvider).completeOnboarding(username, role);
-    // Refresh user data after onboarding
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       return ref.read(authRepositoryProvider).getMe();
@@ -46,7 +56,6 @@ class AuthNotifier extends AsyncNotifier<UserModel?> {
 
   UserModel? get currentUser => state.valueOrNull;
 
-  // Surfaces a clean error message from the current error state
   String? get errorMessage {
     return state.error != null ? extractError(state.error!).message : null;
   }
