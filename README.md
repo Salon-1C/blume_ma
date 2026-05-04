@@ -1,35 +1,35 @@
-# blume_ma — Aplicación Móvil de Blume
+# blume_ma — Blume Mobile App
 
-Cliente móvil multiplataforma (Android / iOS) para **Blume**, una plataforma de streaming educativo en vivo. Permite a estudiantes explorar canales, unirse a clases en vivo, y ver grabaciones; y a profesores gestionar su contenido desde el celular.
-
----
-
-## Tabla de contenidos
-
-- [Arquitectura](#arquitectura)
-- [Stack tecnológico](#stack-tecnológico)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Requisitos previos](#requisitos-previos)
-- [Configuración](#configuración)
-- [Ejecución](#ejecución)
-- [Modo demo](#modo-demo)
-- [Integración con el backend](#integración-con-el-backend)
-- [Pantallas y navegación](#pantallas-y-navegación)
+Cross-platform mobile client (Android / iOS) for **Blume**, a live educational streaming platform. Students can explore channels, join live classes, and watch recordings; professors can manage their content from their phone.
 
 ---
 
-## Arquitectura
+## Table of contents
 
-La app sigue **Clean Architecture** con separación en capas:
+- [Architecture](#architecture)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Running the app](#running-the-app)
+- [Demo mode](#demo-mode)
+- [Backend integration](#backend-integration)
+- [Screens and navigation](#screens-and-navigation)
+
+---
+
+## Architecture
+
+The app follows **Clean Architecture** with clear layer separation:
 
 ```
 Presentation  →  Domain (providers/notifiers)  →  Data (repositories)  →  API
 ```
 
 - **State management:** Riverpod 2.x (`AsyncNotifier`, `FutureProvider.autoDispose`)
-- **Navegación:** GoRouter con `ShellRoute` para el bottom nav y redirect guards basados en auth
-- **Red:** Dio + `PersistCookieJar` — maneja automáticamente la cookie de sesión `blume_session` del backend Spring Boot
-- **Persistencia local:** `FlutterSecureStorage` para el token JWT
+- **Navigation:** GoRouter with `ShellRoute` for the bottom nav and auth-based redirect guards
+- **Networking:** Dio + `PersistCookieJar` — automatically handles the `blume_session` cookie set by the Spring Boot backend
+- **Local persistence:** `FlutterSecureStorage` for the JWT token
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -45,46 +45,46 @@ Presentation  →  Domain (providers/notifiers)  →  Data (repositories)  →  
 └──────────────────────┬──────────────────────────┘
                        │ HTTP / REST
 ┌──────────────────────▼──────────────────────────┐
-│            Backend Blume (Traefik :80)          │
+│            Blume Backend (Traefik :80)          │
 │  Spring Boot · Go Stream Engine · Record Svc    │
 └─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Stack tecnológico
+## Tech stack
 
-| Paquete | Versión | Uso |
+| Package | Version | Purpose |
 |---|---|---|
 | `flutter_riverpod` | ^2.6 | State management |
-| `go_router` | ^14.x | Navegación declarativa |
-| `dio` | ^5.7 | Cliente HTTP |
-| `dio_cookie_manager` + `cookie_jar` | ^3.x / ^4.x | Manejo de cookies de sesión |
-| `flutter_secure_storage` | ^9.x | Almacenamiento seguro del JWT |
-| `video_player` + `chewie` | ^2.9 / ^1.x | Reproducción de video (live HLS + grabaciones) |
-| `cached_network_image` | ^3.4 | Caché de imágenes |
+| `go_router` | ^14.x | Declarative navigation |
+| `dio` | ^5.7 | HTTP client |
+| `dio_cookie_manager` + `cookie_jar` | ^3.x / ^4.x | Session cookie handling |
+| `flutter_secure_storage` | ^9.x | Secure JWT storage |
+| `video_player` + `chewie` | ^2.9 / ^1.x | Video playback (live HLS + recordings) |
+| `cached_network_image` | ^3.4 | Image caching |
 | `shimmer` | ^3.0 | Skeleton loaders |
-| `path_provider` | ^2.1 | Directorio de cookies persistentes |
+| `path_provider` | ^2.1 | Persistent cookie directory |
 
 ---
 
-## Estructura del proyecto
+## Project structure
 
 ```
 lib/
-├── main.dart                          # Entry point — inicializa PersistCookieJar y ProviderScope
-├── app.dart                           # GoRouter + tema Material 3
+├── main.dart                          # Entry point — initializes PersistCookieJar and ProviderScope
+├── app.dart                           # GoRouter + Material 3 theme
 │
 ├── core/
 │   ├── constants/
-│   │   ├── api_constants.dart         # URLs base y paths de endpoints
-│   │   └── app_colors.dart            # Paleta de colores
+│   │   ├── api_constants.dart         # Base URLs and endpoint paths
+│   │   └── app_colors.dart            # Color palette
 │   ├── demo/
-│   │   └── demo_data.dart             # Datos mock para modo demo + demoModeProvider
+│   │   └── demo_data.dart             # Mock data for demo mode + demoModeProvider
 │   ├── errors/
-│   │   └── app_exception.dart         # Excepciones tipadas del dominio
+│   │   └── app_exception.dart         # Typed domain exceptions
 │   ├── network/
-│   │   └── dio_client.dart            # Dio + CookieManager + interceptor de errores
+│   │   └── dio_client.dart            # Dio + CookieManager + error interceptor
 │   └── storage/
 │       └── auth_storage.dart          # FlutterSecureStorage wrapper
 │
@@ -136,174 +136,174 @@ lib/
 │           └── screens/{recordings,recording_player}_screen.dart
 │
 └── shared/
-    ├── theme/app_theme.dart           # Tema claro y oscuro Material 3
+    ├── theme/app_theme.dart           # Light and dark Material 3 themes
     └── widgets/
         ├── blume_loading.dart         # CircularProgressIndicator + ShimmerCard
-        ├── blume_error.dart           # Vista de error con botón reintentar
-        └── blume_empty.dart           # Vista de estado vacío
+        ├── blume_error.dart           # Error view with retry button
+        └── blume_empty.dart           # Empty state view
 ```
 
 ---
 
-## Requisitos previos
+## Prerequisites
 
 - **Flutter SDK** ≥ 3.11.5
 - **Dart SDK** ≥ 3.4.0
-- Android Studio / VS Code con extensión Flutter
-- Para Android físico: modo desarrollador activado en el dispositivo
-- Para conectar con el backend: [blume_business_logic_ms](../blume_business_logic_ms) + [infrastructure](../infrastructure) corriendo
+- Android Studio or VS Code with the Flutter extension
+- For a physical Android device: developer mode enabled
+- To connect to the backend: [blume_business_logic_ms](../blume_business_logic_ms) + [infrastructure](../infrastructure) running
 
 ---
 
-## Configuración
+## Setup
 
-### 1. Instalar dependencias
+### 1. Install dependencies
 
 ```bash
 flutter pub get
 ```
 
-### 2. Configurar la URL del backend
+### 2. Set the backend URL
 
-Edita `lib/core/constants/api_constants.dart`:
+Edit `lib/core/constants/api_constants.dart`:
 
 ```dart
-// Android Emulator (apunta al localhost del host)
+// Android Emulator (points to the host machine's localhost)
 static const String baseUrl = 'http://10.0.2.2';
 
-// Dispositivo físico (usa la IP LAN de tu máquina)
+// Physical device (use your machine's LAN IP)
 static const String baseUrl = 'http://192.168.1.X';
 
 // iOS Simulator
 static const String baseUrl = 'http://localhost';
 ```
 
-> Tu IP LAN en Windows: `ipconfig | findstr "IPv4"`  
-> Tu IP LAN en macOS/Linux: `ifconfig | grep "inet "`
+> Find your LAN IP on Windows: `ipconfig | findstr "IPv4"`  
+> Find your LAN IP on macOS/Linux: `ifconfig | grep "inet "`
 
-### 3. Android — tráfico HTTP en desarrollo
+### 3. Android — HTTP traffic in development
 
-El `AndroidManifest.xml` ya incluye `android:usesCleartextTraffic="true"` y el `network_security_config.xml` con los dominios locales permitidos. No requiere cambios adicionales.
+`AndroidManifest.xml` already includes `android:usesCleartextTraffic="true"` and a `network_security_config.xml` with the allowed local domains. No additional changes needed.
 
 ---
 
-## Ejecución
+## Running the app
 
 ```bash
-# Listar dispositivos disponibles
+# List available devices
 flutter devices
 
-# Correr en un dispositivo específico
+# Run on a specific device
 flutter run -d <device-id>
 
-# Build APK de debug
+# Build a debug APK
 flutter build apk --debug
 ```
 
 ---
 
-## Modo demo
+## Demo mode
 
-La app incluye un **modo demo** que no requiere backend. En la pantalla de login, pulsa **"Ver demo (sin backend)"**.
+The app includes a **demo mode** that requires no backend. On the login screen, tap **"View demo (no backend)"**.
 
-Carga datos de ejemplo:
+It loads the following sample data:
 
-| Sección | Contenido |
+| Section | Content |
 |---|---|
-| Explorar | 4 canales públicos, 2 clases en vivo, 6 clases totales |
-| Mis cursos | 2 canales inscritos con sus clases |
-| Grabaciones | 3 grabaciones reproducibles (videos de muestra) |
-| Perfil | Usuario demo (`demo@blume.app`) |
+| Explore | 4 public channels, 2 live classes, 6 classes total |
+| My Courses | 2 enrolled channels with their classes |
+| Recordings | 3 playable recordings (sample videos) |
+| Profile | Demo user (`demo@blume.app`) |
 
 ---
 
-## Integración con el backend
+## Backend integration
 
-La app consume la API REST del stack de Blume a través de Traefik (puerto 80):
+The app consumes the Blume REST API through Traefik (port 80).
 
-### Autenticación
+### Authentication
 
-La sesión se maneja con una cookie `blume_session` (httpOnly, JWT). El `PersistCookieJar` de Dio la almacena en disco y la envía automáticamente en cada request.
+Sessions are managed via a `blume_session` cookie (httpOnly, JWT). Dio's `PersistCookieJar` stores it on disk and sends it automatically with every request.
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/auth/login` | Login con email y contraseña |
-| `POST` | `/api/auth/registro` | Crear cuenta LOCAL |
-| `GET` | `/api/auth/me` | Obtener usuario de la sesión activa |
-| `POST` | `/api/auth/logout` | Cerrar sesión |
-| `POST` | `/api/auth/onboarding` | Completar perfil (username + rol) |
-| `POST` | `/api/auth/password-reset/request` | Solicitar código de recuperación |
-| `POST` | `/api/auth/password-reset/confirm` | Confirmar código y nueva contraseña |
+| `POST` | `/api/auth/login` | Login with email and password |
+| `POST` | `/api/auth/registro` | Create a LOCAL account |
+| `GET` | `/api/auth/me` | Get the user from the active session |
+| `POST` | `/api/auth/logout` | Log out |
+| `POST` | `/api/auth/onboarding` | Complete profile (username + role) |
+| `POST` | `/api/auth/password-reset/request` | Request a 6-digit recovery code |
+| `POST` | `/api/auth/password-reset/confirm` | Confirm code and set new password |
 
-### Canales y clases
+### Channels and classes
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/cursos/explorar` | Canales públicos |
-| `GET` | `/api/cursos` | Mis canales inscritos (requiere auth) |
-| `POST` | `/api/cursos/:id/inscribirse` | Inscribirse a un canal |
-| `GET` | `/api/clases` | Listar clases (filtrables por `status`, `type`) |
-| `GET` | `/api/clases/:id` | Detalle de una clase |
+| `GET` | `/api/cursos/explorar` | Public channels |
+| `GET` | `/api/cursos` | My enrolled channels (requires auth) |
+| `POST` | `/api/cursos/:id/inscribirse` | Enroll in a channel |
+| `GET` | `/api/clases` | List classes (filterable by `status`, `type`) |
+| `GET` | `/api/clases/:id` | Class detail |
 
-### Grabaciones
+### Recordings
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/recordings` | Catálogo de grabaciones |
-| `GET` | `/api/recordings/:id` | Metadata de una grabación |
-| `GET` | `/api/recordings/:id/play` | Stream del video |
+| `GET` | `/api/recordings` | Recordings catalog |
+| `GET` | `/api/recordings/:id` | Recording metadata |
+| `GET` | `/api/recordings/:id/play` | Stream the video |
 
-### Streaming en vivo (HLS)
+### Live streaming (HLS)
 
-El player de live streams consume HLS desde MediaMTX. Para habilitarlo, expón el puerto 8888 en el `docker-compose.yml`:
+The live stream player consumes HLS from MediaMTX. To enable it, expose port 8888 in `docker-compose.yml`:
 
 ```yaml
 mediamtx:
   ports:
     - "8888:8888"   # HLS
-    - "8889:8889"   # WHEP (ya expuesto)
+    - "8889:8889"   # WHEP (already exposed)
     - "1935:1935"   # RTMP
 ```
 
-La URL HLS se construye como:
+The HLS URL is built as:
 ```
 http://<HOST>:8888/live/<streamKey>/index.m3u8
 ```
 
 ---
 
-## Pantallas y navegación
+## Screens and navigation
 
 ```
-/splash         Verifica sesión activa → redirige a /login o /explorar
-/login          Inicio de sesión (email + contraseña) + botón demo
-/registro       Crear cuenta nueva
-/recuperar      Recuperación de contraseña (código de 6 dígitos)
-/onboarding     Elegir username y rol (STUDENT / PROFESSOR)
+/splash         Checks active session → redirects to /login or /explorar
+/login          Sign in (email + password) + demo button
+/registro       Create a new account
+/recuperar      Password recovery (6-digit code)
+/onboarding     Choose username and role (STUDENT / PROFESSOR)
 
 ── Bottom Navigation ──────────────────────────────────
-/explorar       Canales públicos + clases en vivo y todas las clases
-/cursos         Mis canales inscritos
-/grabaciones    Catálogo de grabaciones
-/perfil         Datos del usuario + cerrar sesión
+/explorar       Public channels + live and all classes
+/cursos         My enrolled channels
+/grabaciones    Recordings catalog
+/perfil         User info + sign out
 
-── Pantallas de detalle ───────────────────────────────
-/canal/:id          Detalle de canal + lista de clases + inscribirse
-/clase/:id/live     Player de clase en vivo (HLS via video_player)
-/grabacion/:id      Player de grabación con controles Chewie
+── Detail screens ─────────────────────────────────────
+/canal/:id          Channel detail + class list + enroll button
+/clase/:id/live     Live class player (HLS via video_player)
+/grabacion/:id      Recording player with Chewie controls
 ```
 
-### Credenciales de prueba (con backend)
+### Test credentials (with backend)
 
-La migración `V4__Seed_Data.sql` inserta usuarios de ejemplo. Contraseña para todos:
+The `V4__Seed_Data.sql` migration inserts sample users. Password for all of them:
 
 ```
 Blume2025!
 ```
 
-| Email | Rol |
+| Email | Role |
 |---|---|
-| `ana.garcia@unal.edu.co` | Estudiante |
-| `pedro.lopez@unal.edu.co` | Estudiante |
-| `carlos.mendoza@unal.edu.co` | Profesor |
-| `maria.torres@unal.edu.co` | Profesor |
+| `ana.garcia@unal.edu.co` | Student |
+| `pedro.lopez@unal.edu.co` | Student |
+| `carlos.mendoza@unal.edu.co` | Professor |
+| `maria.torres@unal.edu.co` | Professor |
